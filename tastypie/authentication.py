@@ -10,8 +10,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.middleware.csrf import _sanitize_token, constant_time_compare
 from django.utils.http import same_origin
 from django.utils.translation import ugettext as _
+from tastypie.compat import get_user_model, get_username_field
 from tastypie.http import HttpUnauthorized
-from tastypie.compat import User, username_field
 
 try:
     from hashlib import sha1
@@ -180,8 +180,6 @@ class ApiKeyAuthentication(Authentication):
         Should return either ``True`` if allowed, ``False`` if not or an
         ``HttpResponse`` if you need something custom.
         """
-        from tastypie.compat import User
-
         try:
             username, api_key = self.extract_credentials(request)
         except ValueError:
@@ -189,6 +187,10 @@ class ApiKeyAuthentication(Authentication):
 
         if not username or not api_key:
             return self._unauthorized()
+
+        # Determine which user object to use and what its user-name field is
+        User = get_user_model()
+        username_field = get_username_field()
 
         try:
             lookup_kwargs = {username_field: username}
@@ -280,6 +282,7 @@ class SessionAuthentication(Authentication):
 
         This implementation returns the user's username.
         """
+        username_field = get_username_field()
         return getattr(request.user, username_field)
 
 
@@ -366,6 +369,10 @@ class DigestAuthentication(Authentication):
         return True
 
     def get_user(self, username):
+        # Determine which user object to use and what its user-name field is
+        User = get_user_model()
+        username_field = get_username_field()
+
         try:
             lookup_kwargs = {username_field: username}
             user = User.objects.get(**lookup_kwargs)

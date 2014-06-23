@@ -1,7 +1,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from django.core.management.base import NoArgsCommand
-from tastypie.compat import User
+from tastypie.compat import get_user_model
 from tastypie.models import ApiKey
 
 
@@ -11,6 +11,9 @@ class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         """Goes through all users and adds API keys for any that don't have one."""
         self.verbosity = int(options.get('verbosity', 1))
+
+        # Determine which user object to use
+        User = get_user_model()
 
         for user in User.objects.all().iterator():
             try:
