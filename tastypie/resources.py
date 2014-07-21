@@ -2345,7 +2345,15 @@ class BaseModelResource(Resource):
             related_mngr = None
 
             if isinstance(field_object.attribute, six.string_types):
-                related_mngr = getattr(bundle.obj, field_object.attribute)
+                # Check for `__` in the field for looking through the relation.
+                attrs = field_object.attribute.split('__')
+                current_object = bundle.obj
+
+                for attr in attrs:
+                    previous_object = current_object
+                    current_object = getattr(current_object, attr)
+
+                related_mngr = current_object
             elif callable(field_object.attribute):
                 related_mngr = field_object.attribute(bundle)
 

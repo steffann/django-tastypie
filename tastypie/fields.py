@@ -165,6 +165,17 @@ class ApiField(object):
                 return None
             elif self.attribute and getattr(bundle.obj, self.attribute, None):
                 return getattr(bundle.obj, self.attribute)
+            elif '__' in self.attribute:
+                # Check for `__` in the field for looking through the relation.
+                attrs = self.attribute.split('__')
+                current_object = bundle.obj
+
+                for attr in attrs:
+                    previous_object = current_object
+                    current_object = getattr(current_object, attr, None)
+
+                if current_object is not None:
+                    return current_object
             elif self.instance_name and hasattr(bundle.obj, self.instance_name):
                 return getattr(bundle.obj, self.instance_name)
             elif self.has_default():
